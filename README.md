@@ -93,7 +93,7 @@ Our framework builds upon **Qwen2.5-VL** with a curriculum-inspired multistage t
 from src.inference import NursingVLMPredictor
 
 # Load trained model
-predictor = NursingVLMPredictor.from_pretrained("chang887/nursing-vlm-7b-s4")
+predictor = NursingVLMPredictor.from_pretrained("chang887/qwen2_vl_s3_s4_s2_base")
 
 # Analyze nursing procedure video
 results = predictor.analyze_procedure("path/to/nursing_video.mp4")
