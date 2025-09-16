@@ -1,4 +1,4 @@
-# Automated Procedural Analysis via Video-Language Models for Scalable Training of Nursing Skills
+# Automated Procedural Analysis via Video-Language Models for AI-assisted Nursing Skills Assessment
 
 [![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/your-paper-id) 
 [![Dataset](https://img.shields.io/badge/Dataset-NurVLM-blue)](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing)
