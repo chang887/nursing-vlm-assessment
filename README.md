@@ -92,13 +92,13 @@ The dataset is pre-organized by training stage. Each folder contains videos prep
 # Stage 1: Procedure Recognition
 # Uses original untrimmed videos for procedure identification
 # Input: Raw nursing procedure videos
-# Output: JSON with procedure names and temporal segments
+# Output: JSON with procedure names and temporal segments (Download from: /NurViD-benchmark/blob/main/annotations/NurViD_annotations.json)
 
 # Stage 2: Dense Event Understanding  
 # Uses: timestamped_videos/ folder
 python scripts/data_processing/process_dense_captions.py \
     --input_dir data/NurVLM/timestamped_videos \
-    --output_file data/stage2_dense_events.json
+    --output_file data/stage2_dense_caption.json
 
 # Stage 3: Missing Event Prediction
 # Uses: timestamped_videos_masked_train/ and masked_videos/
@@ -329,5 +329,3 @@ We build upon the following repositories:
 
 For questions and collaboration opportunities:
 - **Email**: chang887@purdue.edu, dnsliu@umich.edu
-- **Issues**: [GitHub Issues](https://github.com/your-repo/nursing-vlm-framework/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/nursing-vlm-framework/discussions)
