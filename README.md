@@ -1,7 +1,7 @@
 # Automated Procedural Analysis via Video-Language Models for Scalable Training of Nursing Skills
 
 [![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/your-paper-id) 
-[![Dataset](https://img.shields.io/badge/Dataset-NurViD_Assess-blue)](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing)
+[![Dataset](https://img.shields.io/badge/Dataset-NurVLM-blue)](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing)
 [![Models](https://img.shields.io/badge/🤗%20Hugging%20Face-Models-yellow)](https://huggingface.co/chang887/models)
 
 The first VLM-based framework for automated procedural assessment in nursing education, enabling scalable training through curriculum-inspired hierarchical evaluation.
@@ -21,58 +21,106 @@ This framework addresses critical challenges in nursing education by automating 
 
 ## Installation
 
+### Environment Setup
+**Recommended Hardware:**
+- Google Colab Pro+ with A100 GPU (40GB VRAM)
+- Alternative: Local setup with 32GB+ GPU memory
+- 
+**Dependencies:**
 ```bash
-git clone https://github.com/your-repo/nursing-vlm-framework.git
-cd nursing-vlm-framework
-bash scripts/install.sh
-```
+# Core framework
+git clone https://github.com/hiyouga/LLaMA-Factory.git
+cd LLaMA-Factory
+pip install -e ".[metrics]"
 
+# Essential packages
+pip install deepspeed==0.14.4
+pip install flash-attn --no-build-isolation
+pip install accelerate bitsandbytes
+pip install wandb
+
+# Additional requirements
+pip install torch>=2.0.0
+pip install transformers>=4.37.0
+pip install qwen-vl-utils
+pip install opencv-python
+pip install pillow
+```
+### Verify Installation
+```python
+from transformers import AutoProcessor
+processor = AutoProcessor.from_pretrained('Qwen/Qwen2.5-VL-3B-Instruct', trust_remote_code=True)
+print('✅ Qwen2.5-VL processor loaded successfully!')
 ### Requirements
 
-- Python 3.8+
-- PyTorch 2.0+
-- CUDA 11.8+ (for GPU training)
-- 32GB+ GPU memory (recommended for 7B model)
 
 ## Dataset Preparation
 
-### NurViD Dataset
+### NurVLM Dataset
 
-Download the NurViD-Assess dataset from [Google Drive](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing):
+Download the NurVLM dataset from [Google Drive](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing):
 
 ```bash
-# Create data directory structure
-mkdir -p data/NurViD/{videos,annotations,processed}
+mkdir -p data/NurVLM/
 
-# Place downloaded files:
-# - Raw videos in data/NurViD/videos/
-# - Annotations in data/NurViD/annotations/
-# - Processed clips in data/NurViD/processed/
+# - timestamped_videos/                    # Stage 2: Dense captioning
+# - timestamped_videos_masked_train/       # Stage 3: Missing event prediction  
+# - timestamped_videos_swap_train/         # Stage 4: Sequence order (swap)
+# - timestamped_videos_shift_train/        # Stage 4: Sequence order (shift)
+# - masked_videos/                         # Stage 3: Masked videos
+# - shuffled_videos_swap/                  # Stage 4: Shuffled sequences
+# - shuffled_videos_shift/                 # Stage 4: Shifted sequences
+
+# Supporting data files:
+# - edited/                                # Processed video clips
+# - nonedited/                            # Original unprocessed videos
 ```
 
-The dataset includes:
+**Dataset Statistics:**
 - **1.5K video instances** spanning 51 nursing procedures
 - **177 granular action primitives** with temporal annotations
 - **Expert-validated** procedural sequences
+- **Multi-stage training data** with temporal modifications (masked, shuffled, shifted)
+- **10,454 masked clips** for causal reasoning training
+- **3,930 clips** for sequence order correction (swap + shift operations)
 
 ### Data Processing Pipeline
 
+The dataset is pre-organized by training stage. Each folder contains videos prepared for specific learning objectives:
+
 ```bash
-# Generate fine-grained temporal annotations
-python scripts/data_processing/generate_annotations.py \
-    --input_dir data/NurViD/videos \
-    --output_dir data/NurViD/annotations
+# Stage 1: Procedure Recognition
+# Uses original untrimmed videos for procedure identification
+# Input: Raw nursing procedure videos
+# Output: JSON with procedure names and temporal segments
 
-# Create masked prediction datasets  
-python scripts/data_processing/create_masked_events.py \
-    --annotations_dir data/NurViD/annotations \
-    --output_dir data/NurViD/processed/masked_events
+# Stage 2: Dense Event Understanding  
+# Uses: timestamped_videos/ folder
+python scripts/data_processing/process_dense_captions.py \
+    --input_dir data/NurVLM/timestamped_videos \
+    --output_file data/stage2_dense_events.json
 
-# Generate sequence correction datasets
-python scripts/data_processing/create_shuffled_sequences.py \
-    --annotations_dir data/NurViD/annotations \
-    --output_dir data/NurViD/processed/shuffled_sequences
+# Stage 3: Missing Event Prediction
+# Uses: timestamped_videos_masked_train/ and masked_videos/
+python scripts/data_processing/process_masked_events.py \
+    --masked_dir data/NurVLM/timestamped_videos_masked_train \
+    --output_file data/stage3_masked_events.json
+
+# Stage 4: Sequence Order Correction
+# Uses: timestamped_videos_swap_train/ and timestamped_videos_shift_train/
+python scripts/data_processing/process_shuffled_sequences.py \
+    --swap_dir data/NurVLM/timestamped_videos_swap_train \
+    --shift_dir data/NurVLM/timestamped_videos_shift_train \
+    --output_file data/stage4_shuffled_sequences.json
 ```
+
+**Folder Descriptions:**
+- `timestamped_videos/`: Base video clips with temporal annotations
+- `masked_videos/`: Videos with segments masked for causal reasoning
+- `shuffled_videos_swap/`: Sequences with swapped action order
+- `shuffled_videos_shift/`: Sequences with shifted temporal arrangement
+- `edited/`: Processed clips ready for training
+- `nonedited/`: Original unmodified video content
 
 ## Model Architecture
 
@@ -104,16 +152,6 @@ print(f"Detected Errors: {results['errors']}")
 print(f"Feedback: {results['feedback']}")
 ```
 
-### Demo Application
-
-Launch the interactive demo:
-
-```bash
-python src/serve/app.py --model_path chang887/nursing-vlm-7b-s4
-```
-
-Navigate to `http://localhost:7860` to access the web interface.
-
 ## Training
 
 ### Prerequisites
@@ -124,48 +162,6 @@ pip install deepspeed wandb
 
 # Configure DeepSpeed
 export CUDA_VISIBLE_DEVICES=0,1,2,3
-```
-
-### Stage-by-Stage Training
-
-#### Stage 1: Procedure Recognition
-
-```bash
-bash scripts/train/stage1_procedure_recognition.sh \
-    --model_id Qwen/Qwen2.5-VL-7B \
-    --data_path data/NurViD/stage1_procedures.json \
-    --output_dir checkpoints/stage1 \
-    --num_train_epochs 3
-```
-
-#### Stage 2: Dense Event Understanding
-
-```bash
-bash scripts/train/stage2_dense_captioning.sh \
-    --model_id checkpoints/stage1 \
-    --data_path data/NurViD/stage2_dense_events.json \
-    --output_dir checkpoints/stage2 \
-    --num_train_epochs 2
-```
-
-#### Stage 3: Missing Event Prediction
-
-```bash
-bash scripts/train/stage3_missing_events.sh \
-    --model_id checkpoints/stage2 \
-    --data_path data/NurViD/stage3_masked_events.json \
-    --output_dir checkpoints/stage3 \
-    --num_train_epochs 2
-```
-
-#### Stage 4: Sequence Order Correction
-
-```bash
-bash scripts/train/stage4_order_correction.sh \
-    --model_id checkpoints/stage3 \
-    --data_path data/NurViD/stage4_shuffled_sequences.json \
-    --output_dir checkpoints/stage4 \
-    --num_train_epochs 2
 ```
 
 ### Training Configuration
@@ -242,7 +238,7 @@ bash scripts/train/stage4_order_correction.sh \
 ### Task 4: Sequence Order Correction
 
 **Input**: Video with shuffled action sequence  
-**Output**: Correctness assessment and proper ordering
+**Output**: Step Accuracy and Proper Order Evaluation
 
 ```json
 {
@@ -321,13 +317,10 @@ If you find this work useful, please cite our paper:
 }
 ```
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgments
 
 We build upon the following repositories:
+- [NurViD](https://github.com/minghu0830/NurViD-benchmark): Nursing video dataset benchmark
 - [Qwen2.5-VL](https://huggingface.co/Qwen/Qwen2.5-VL-7B): Foundation VLM architecture
 - [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory): Efficient fine-tuning framework
 - [DeepSpeed](https://github.com/microsoft/DeepSpeed): Distributed training optimization
@@ -335,6 +328,6 @@ We build upon the following repositories:
 ## Contact
 
 For questions and collaboration opportunities:
-- **Email**: chang887@purdue.edu
+- **Email**: chang887@purdue.edu, dnsliu@umich.edu
 - **Issues**: [GitHub Issues](https://github.com/your-repo/nursing-vlm-framework/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-repo/nursing-vlm-framework/discussions)
