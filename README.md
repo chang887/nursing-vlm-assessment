@@ -1,7 +1,7 @@
 # Automated Procedural Analysis via Video-Language Models for Scalable Training of Nursing Skills
 
 [![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/your-paper-id) 
-[![Dataset](https://img.shields.io/badge/Dataset-NurViD-Assess-blue)](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing)
+[![Dataset](https://img.shields.io/badge/Dataset-NurViD_Assess-blue)](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing)
 [![Models](https://img.shields.io/badge/🤗%20Hugging%20Face-Models-yellow)](https://huggingface.co/chang887/models)
 
 The first VLM-based framework for automated procedural assessment in nursing education, enabling scalable training through curriculum-inspired hierarchical evaluation.
