@@ -1,6 +1,6 @@
 # Automated Procedural Analysis via Video-Language Models for AI-assisted Nursing Skills Assessment
 
-[![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/your-paper-id) 
+[![Paper](https://img.shields.io/badge/arXiv-Paper-red)](https://arxiv.org/abs/2509.16810)
 [![Dataset](https://img.shields.io/badge/Dataset-NurVLM-blue)](https://drive.google.com/drive/folders/1ibALEtA6xqnmuKYHMTFrvCUucNzP8oQW?usp=sharing)
 [![Models](https://img.shields.io/badge/🤗%20Hugging%20Face-Models-yellow)](https://huggingface.co/chang887/models)
 
